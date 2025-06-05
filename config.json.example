@@ -24,7 +24,7 @@
     "silentCheck": true,
 
     "RconIP": "127.0.0.1",
-    "RconPort": "port",
+    "RconPort": 8080,
     "RconPassword": "password",
     "RconTimeout": 2000,
 

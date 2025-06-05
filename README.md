@@ -1,0 +1,56 @@
+# factorio-chat-relay
+
+Simple relay between Factorio and a Discord Channel using Factorio's log files
+and an Rcon socket.
+
+Note that this does not disable achievements by default.
+
+## Configuration
+
+See `config.example.json`, most options should be self explanatory, but they are detailed here.
+
+| Field                 | Description                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| logFile               | The factorio log file, specified by `--console-log` in the Factorio binary                                                                                                                 |
+| chatChannel           | Discord channel to log to                                                                                                                                                                  |
+| cleanMessages         | Removes `<server>` before every message. This invokes a Lua command and WILL DISABLE ACHIEVEMENTS                                                                                          |
+| adminsCanRunCommands  | Allows users with Discord administrator permissions to invoke Lua commands                                                                                                                 |
+| sendServerMessages    | TODO                                                                                                                                                                                       |
+| sendGPSMessages       | TODO                                                                                                                                                                                       |
+| logLines              | TODO                                                                                                                                                                                       |
+| startupMessag.enabled | TODO                                                                                                                                                                                       |
+| startupMessag.message | The message to send when the bot connects to the Factorio server                                                                                                                           |
+| factorioPath          | The path to your factorio binary                                                                                                                                                           |
+| autoCheckUpdates      | Should updates be checked automatically? Requires [factorio-updater](https://github.com/narc0tiq/factorio-updater)'s `update_factorio.py` to be copied to the root of the repository.      |
+| autoCheckModUpdates   | Should mod updates be checked automatically? Requires [factorio-mod-updater](https://github.com/ppebb/factorio-mod-updater)'s `mod_updater.py` to be copied to the root of the repository. |
+| factorioSettingsPath  | Path to server-settings.json                                                                                                                                                               |
+| factorioModsPath      | Path to your mods folder                                                                                                                                                                   |
+| userToNotify          | User ID to ping when any mods or the factorio binary is out of date                                                                                                                        |
+| checkTime             | How frequently to check for updates (in milliseconds)                                                                                                                                      |
+| RconIP                | Factorio Rcon socket address                                                                                                                                                               |
+| RconPort              | Factorio Rcon socket port                                                                                                                                                                  |
+| RconPassword          | Factorio Rcon socket password                                                                                                                                                              |
+| RconTimeout           | Rcon connection timeout (in milliseconds)                                                                                                                                                  |
+| token                 | Your Discord bot token (from the developer portal)                                                                                                                                         |
+| applicationID         | Your Discord application ID (from the developer portal)                                                                                                                                    |
+
+## Usage
+
+1. Install dependencies with `npm i`
+2. Compile the program with `npm run build`
+3. Run the program with `npm run start -- --config config.json --refresh-commands`
+
+Note: --refresh-commands only needs to be provided once until new slash commands are added.
+
+## Credit
+
+This project is a full rewrite of
+[FactorioChatBot](https://github.com/AGuyNamedJens/FactorioChatBot/), based on
+commits from [mikhailmikhalchuk's
+fork](https://github.com/mikhailmikhalchuk/FactorioChatBot) and [my own
+fork](https://github.com/ppebb/FactorioChatBot).
+
+## License
+
+While the original project is MIT, this project is licened under the AGPLv3
+license. See `LICENSE` for more detail.
