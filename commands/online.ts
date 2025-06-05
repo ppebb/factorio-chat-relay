@@ -11,10 +11,10 @@ export default {
     async exec(interaction: ChatInputCommandInteraction<CacheType>) {
         let players = await getOnlinePlayers();
 
-        players = players.map(player => `\`${player}\``);
+        players = players.map(player => `- \`${player}\``);
 
         await interaction.reply({
-            content: `Players Online: ${players.length}\n- ${players.join("\n- ")}`,
+            content: `Players Online: ${players.length}\n${players.join("\n")}`,
         });
     },
 };
