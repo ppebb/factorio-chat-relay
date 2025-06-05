@@ -31,11 +31,11 @@ export function startRelay() {
             // If the user replied to us, check the message to see if it
             // contains a Factorio username we can use.
             if (reply.member?.user.bot && reply.member.user.id == (client.user?.id ?? "")) {
-                const colonIdx = message.content.indexOf(":");
+                const colonIdx = reply.content.indexOf(":");
                 // If it's a username, it should not start with a : like system
                 // messages with an emoji, but it should contain a colon after
                 if (colonIdx > 0)
-                    replyName = message.content.slice(0, colonIdx);
+                    replyName = reply.content.slice(0, colonIdx);
                 else
                     replyName = client.user?.displayName ?? client.user?.username ?? "relay";
 
