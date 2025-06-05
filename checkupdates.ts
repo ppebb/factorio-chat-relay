@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { config } from "./config.js";
 import { sendDiscord } from "./message.js";
-import { PythonShell } from "python-shell";
+import { PythonShell, PythonShellErrorWithLogs } from "python-shell";
 
 const FACTORIOUPDATER = "update_factorio.py";
 const MODUPDATER = "mod_updater.py";
@@ -15,13 +15,19 @@ export async function checkFactorio() {
         return;
     }
 
-    let res = await PythonShell.run(FACTORIOUPDATER, {
-        args: [
-            "-d",
-            "-a",
-            config.factorioPath
-        ]
-    });
+    let res;
+    try {
+        res = await PythonShell.run(FACTORIOUPDATER, {
+            args: [
+                "-d",
+                "-a",
+                config.factorioPath
+            ]
+        });
+    }
+    catch (err) {
+        res = (err as PythonShellErrorWithLogs).logs;
+    }
 
     if (!Array.isArray(res) || res == null || res.length == 0) {
         console.log("Error while checking for updates for the Factorio binary. Ensure the provided path in the config file is set correctly. %j", res);
@@ -51,16 +57,22 @@ export async function checkMods() {
         return;
     }
 
-    let res = await PythonShell.run(MODUPDATER, {
-        args: [
-            "-s", config.factorioSettingsPath,
-            "-m", config.factorioModsPath,
-            "--fact-path", config.factorioPath,
-            "--list",
-        ]
-    });
+    let res;
+    try {
+        res = await PythonShell.run(MODUPDATER, {
+            args: [
+                "-s", config.factorioSettingsPath,
+                "-m", config.factorioModsPath,
+                "--fact-path", config.factorioPath,
+                "--list",
+            ]
+        });
+    }
+    catch (err) {
+        res = (err as PythonShellErrorWithLogs).logs;
+    }
 
-    if (!Array.isArray(res) || res == null) {
+    if (!Array.isArray(res) || res == null || res.length == 0) {
         console.error(`Failed to run ${MODUPDATER}: %j`, res);
         return;
     }
