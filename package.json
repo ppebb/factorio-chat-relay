@@ -1,0 +1,24 @@
+{
+  "name": "factorio-chat-relay",
+  "version": "1.0.0",
+  "description": "ppeb's Factorio Chat Relay",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node build/index.js",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ppeb",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "python-shell": "^5.0.0",
+    "rcon-client": "^4.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "discord-api-types": "^0.38.11",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1"
+  }
+}
