@@ -81,6 +81,8 @@ function isAllowedInteraction(interaction: ChatInputCommandInteraction<CacheType
 interface Command {
     adminOnly: boolean,
     data: SlashCommandOptionsOnlyBuilder,
+    // Whether or not the command should be available
+    shouldEnable?: () => Promise<boolean>,
     init?: () => Promise<void>,
     exec: (_: ChatInputCommandInteraction<CacheType>) => Promise<void>,
 }
@@ -90,13 +92,17 @@ async function resolveCommands(root: string, files: string[], callback: (_: Dict
     const ret: Dictionary<Command> = {};
 
     for (const file of files) {
-        let spec = await import(path.join(root, file));
-        spec = spec.default;
+        const mod = await import(path.join(root, file));
+        const spec = mod.default as Command;
 
         if (spec == undefined || spec == null)
             continue;
 
-        if ("init" in spec)
+        if (spec.shouldEnable)
+            if (!spec.shouldEnable())
+                continue;
+
+        if (spec.init)
             await spec.init();
 
         if ("data" in spec && "exec" in spec) {
