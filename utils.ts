@@ -13,15 +13,12 @@ export function plural(count: number, text: string) {
 
 export async function getOnlinePlayers(): Promise<string[]> {
     const res = await RconSend("/p o");
-
     const split = res.split("\n").slice(1, -1);
 
     const ret: string[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, player] of split) {
+    for (const player of split)
         ret.push(player.trim().split(" (online)")[0]);
-    }
 
     return ret;
 }

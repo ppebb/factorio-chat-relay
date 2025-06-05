@@ -9,10 +9,12 @@ export default {
         .setDescription("Lists online players"),
 
     async exec(interaction: ChatInputCommandInteraction<CacheType>) {
-        const players = await getOnlinePlayers();
+        let players = await getOnlinePlayers();
+
+        players = players.map(player => `\`${player}\``);
 
         await interaction.reply({
-            content: `Players Online: ${players.length}\n\`${players.join("`\n- `")}\``,
+            content: `Players Online: ${players.length}\n- ${players.join("\n- ")}`,
         });
     },
 };

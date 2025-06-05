@@ -25,7 +25,19 @@ export default {
         }
 
         interaction.reply({
-            content: files.map(file => file.slice(0, -4)).join("\n"),
+            content: files.map((file) => {
+                let ret = file.slice(0, -4);
+                const uidx = ret.lastIndexOf("_");
+
+                if (uidx > 0) {
+                    const modName = ret.slice(0, uidx);
+                    const version = ret.slice(uidx + 1, ret.length);
+
+                    ret = `${modName} v${version}`;
+                }
+
+                return ret;
+            }).join("\n"),
         });
     },
 };
