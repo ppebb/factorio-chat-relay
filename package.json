@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ppeb's Factorio Chat Relay",
   "main": "index.ts",
+  "type": "module",
   "scripts": {
     "start": "node build/index.js",
     "build": "tsc",
