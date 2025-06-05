@@ -71,5 +71,7 @@ export async function RconSend(message: string) {
     if (!rcon.authenticated)
         throw "Rcon socket has not authenticated";
 
+    console.log(`Writing message to rcon: '${message}'`);
+
     return rcon.send(message);
 }

@@ -7,7 +7,7 @@ import { checkFactorio, checkMods } from "./checkupdates.js";
 import { rconConnect } from "./rcon.js";
 import { clearLogFile } from "./utils.js";
 
-export const client = new Client({ intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages] });
+export const client = new Client({ intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent] });
 let refresh = false;
 
 for (let i = 2; i < process.argv.length; i++) {

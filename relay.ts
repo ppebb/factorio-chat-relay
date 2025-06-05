@@ -93,7 +93,7 @@ function parseMessage(message: string): [string | null, string | null] {
     if (semiIdx < braceIdx)
         contents = message.slice(braceIdx + 2);
     else
-        contents = message.slice(semiIdx);
+        contents = message.slice(semiIdx + 2);
 
     if (!message.length || braceIdx <= 1)
         return [null, null];
