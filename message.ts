@@ -11,5 +11,6 @@ export async function sendFactorio(message: string) {
 };
 
 export async function sendDiscord(message: string) {
+    console.log(`Sending message to Discord: '${message}'`);
     return (client.channels.cache.get(config.chatChannel) as TextChannel).send(message);
 }
