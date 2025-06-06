@@ -66,11 +66,11 @@ export function startRelay() {
     });
 }
 
-async function handleGameLogWatchEvent(eventType: fs.WatchEventType, filename: string | null) {
-    if (eventType != "change" || !filename)
+async function handleGameLogWatchEvent(eventType: fs.WatchEventType, _: string | null) {
+    if (eventType != "change")
         return;
 
-    const line = await lastLine(filename);
+    const line = await lastLine(config.logFile);
     const [discordMessage, factorioMessage] = parseMessage(line);
 
     if (discordMessage)
@@ -131,11 +131,11 @@ function parseMessage(message: string): [string | null, string | null] {
     return [null, null];
 }
 
-async function handleELWatchEvent(eventType: fs.WatchEventType, filename: string | null) {
-    if (eventType != "change" || !filename)
+async function handleELWatchEvent(eventType: fs.WatchEventType, _: string | null) {
+    if (eventType != "change")
         return;
 
-    const line = await lastLine(filename);
+    const line = await lastLine(config.elFile!);
     const [discordMessage, factorioMessage] = parseELMessage(line);
 
     if (discordMessage)
