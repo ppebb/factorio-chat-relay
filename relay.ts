@@ -2,11 +2,17 @@ import { Events, GuildChannel, Message, MessageType, OmitPartialGroupDMChannel }
 import { config } from "./config.js";
 import { EvolutionEvent, FactorioEvent, FactorioEventType } from "./events.js";
 import { FileWrapper } from "./filewrapper.js";
-import { client } from "./index.js";
+import { client, Dictionary } from "./index.js";
 import { sendDiscord, sendFactorio } from "./message.js";
 import { plural } from "./utils.js";
 
 const pingRegex = /<@([0-9]+)>/;
+
+const evolutionData: Dictionary<number> = {};
+
+export function getEvolutionData() {
+    return evolutionData;
+}
 
 export function startRelay() {
     new FileWrapper(config.logFile, true, handleGameLogWatchEvent);
@@ -195,27 +201,28 @@ function parseELMessage(message: string): [string | null, string | null] {
     const formatted = fevent.format();
 
     switch (e.event) {
-    case FactorioEventType.AchievementGained:
-        return [`:trophy: | ${formatted}`, null];
-    case FactorioEventType.Join:
-        return [`:green_circle: | ${formatted}`, `[color=green]${formatted}[/color]`];
-    case FactorioEventType.Leave:
-        return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
-    case FactorioEventType.Died:
-        return [`:skull: | ${formatted}`, null];
-    case FactorioEventType.Evolution: {
-        const surface = (e as EvolutionEvent).stats.surface;
-        // Don't report evolution on platforms or in personal sandboxes
-        if (surface.includes("platform") || surface.includes("bpsb-lab"))
-            return [null, null];
+        case FactorioEventType.AchievementGained:
+            return [`:trophy: | ${formatted}`, null];
+        case FactorioEventType.Join:
+            return [`:green_circle: | ${formatted}`, `[color=green]${formatted}[/color]`];
+        case FactorioEventType.Leave:
+            return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
+        case FactorioEventType.Died:
+            return [`:skull: | ${formatted}`, null];
+        case FactorioEventType.Evolution: {
+            const stats = (e as EvolutionEvent).stats;
+            // Don't report evolution on platforms or in personal sandboxes
+            if (stats.surface.includes("platform") || stats.surface.includes("bpsb-lab"))
+                return [null, null];
 
-        return [`:dna: | ${formatted}`, null];
-    }
-    case FactorioEventType.ResearchStarted:
-    case FactorioEventType.ResearchFinished:
-    case FactorioEventType.ResearchCancelled:
-        return [`:alembic: | ${formatted}`, null];
-    default:
-        return [formatted, null];
+            evolutionData[stats.surface] = stats.factor;
+            return [null, null];
+        }
+        case FactorioEventType.ResearchStarted:
+        case FactorioEventType.ResearchFinished:
+        case FactorioEventType.ResearchCancelled:
+            return [`:alembic: | ${formatted}`, null];
+        default:
+            return [formatted, null];
     }
 }

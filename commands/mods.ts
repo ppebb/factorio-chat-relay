@@ -24,7 +24,7 @@ export default {
             return;
         }
 
-        interaction.reply({
+        await interaction.reply({
             content: files.map((file) => {
                 let ret = file.slice(0, -4);
                 const uidx = ret.lastIndexOf("_");
