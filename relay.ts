@@ -1,6 +1,6 @@
 import { Events, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
 import { config } from "./config.js";
-import { FactorioEvent, FactorioEventType } from "./events.js";
+import { EvolutionEvent, FactorioEvent, FactorioEventType } from "./events.js";
 import { FileWrapper } from "./filewrapper.js";
 import { client } from "./index.js";
 import { sendDiscord, sendFactorio } from "./message.js";
@@ -160,8 +160,14 @@ function parseELMessage(message: string): [string | null, string | null] {
         return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
     case FactorioEventType.Died:
         return [`:skull: | ${formatted}`, null];
-    case FactorioEventType.Evolution:
+    case FactorioEventType.Evolution: {
+        const surface = (e as EvolutionEvent).stats.surface;
+        // Don't report evolution on platforms or in personal sandboxes
+        if (surface.includes("platform") || surface.includes("bpsb-lab"))
+            return [null, null];
+
         return [`:dna: | ${formatted}`, null];
+    }
     case FactorioEventType.ResearchStarted:
     case FactorioEventType.ResearchFinished:
     case FactorioEventType.ResearchCancelled:
