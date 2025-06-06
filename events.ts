@@ -80,6 +80,7 @@ export class AchievementGainedEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -94,6 +95,7 @@ export class DiedEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -122,6 +124,7 @@ export class EvolutionEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -134,6 +137,7 @@ export class JoinEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -147,6 +151,7 @@ export class LeaveEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -160,6 +165,7 @@ export class ResearchStartedEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -176,6 +182,7 @@ export class ResearchFinishedEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
@@ -192,6 +199,7 @@ export class ResearchCancelledEvent extends FactorioEvent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
         super(jsonObject);
+        Object.assign(this, jsonObject);
     }
 
     override format(): string {
