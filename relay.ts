@@ -159,12 +159,20 @@ function parseELMessage(message: string): [string | null, string | null] {
     const formatted = fevent.format();
 
     switch (e.event) {
+    case FactorioEventType.AchievementGained:
+        return [`:trophy: | ${formatted}`, null];
     case FactorioEventType.Join:
         return [`:green_circle: | ${formatted}`, `[color=green]${formatted}[/color]`];
     case FactorioEventType.Leave:
         return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
     case FactorioEventType.Died:
         return [`:skull: | ${formatted}`, null];
+    case FactorioEventType.Evolution:
+        return [`:dna: | ${formatted}`, null];
+    case FactorioEventType.ResearchStarted:
+    case FactorioEventType.ResearchFinished:
+    case FactorioEventType.ResearchCancelled:
+        return [`:alembic: | ${formatted}`, null];
     default:
         return [formatted, null];
     }
