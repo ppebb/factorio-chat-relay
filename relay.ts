@@ -1,12 +1,16 @@
 import { Events, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
 import { config } from "./config.js";
+import { FactorioEvent, FactorioEventType } from "./events.js";
 import * as fs from "fs";
 import { client } from "./index.js";
 import { sendDiscord, sendFactorio } from "./message.js";
 import { plural } from "./utils.js";
 
 export function startRelay() {
-    fs.watch(config.logFile, { encoding: "utf8" }, handleWatchEvent);
+    fs.watch(config.logFile, { encoding: "utf8" }, handleGameLogWatchEvent);
+
+    if (config.elFile)
+        fs.watch(config.elFile, { encoding: "utf8" }, handleELWatchEvent);
 
     client.on(Events.MessageCreate, async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
         const zl = message.content.length == 0;
@@ -62,11 +66,11 @@ export function startRelay() {
     });
 }
 
-async function handleWatchEvent(eventType: fs.WatchEventType, _: string | null) {
-    if (eventType != "change")
+async function handleGameLogWatchEvent(eventType: fs.WatchEventType, filename: string | null) {
+    if (eventType != "change" || !filename)
         return;
 
-    const line = await lastLine();
+    const line = await lastLine(filename);
     const [discordMessage, factorioMessage] = parseMessage(line);
 
     if (discordMessage)
@@ -76,8 +80,8 @@ async function handleWatchEvent(eventType: fs.WatchEventType, _: string | null) 
         await sendFactorio(factorioMessage);
 }
 
-async function lastLine() {
-    const data = fs.readFileSync(config.logFile, { encoding: "utf8" });
+async function lastLine(filename: string) {
+    const data = fs.readFileSync(filename, { encoding: "utf8" });
 
     const lines = data.trim().split("\n");
     return lines[lines.length - 1];
@@ -98,11 +102,20 @@ function parseMessage(message: string): [string | null, string | null] {
     if (!message.length || braceIdx <= 1)
         return [null, null];
 
-    if (message.includes("[LEAVE]"))
-        return [`:red_circle: | ${contents}`, `[color=red]${contents}[/color]`];
+    // If events-logger is enabled, get the more detailed leave/join from there
+    if (message.includes("[LEAVE]")) {
+        if (config.elFile)
+            return [null, null];
 
-    if (message.includes("[JOIN]"))
+        return [`:red_circle: | ${contents}`, `[color=red]${contents}[/color]`];
+    }
+
+    if (message.includes("[JOIN]")) {
+        if (config.elFile)
+            return [null, null];
+
         return [`:green_circle: | ${contents}`, `[color=green]${contents}[/color]`];
+    }
 
     if (message.includes("[CHAT]") && !message.includes("[CHAT] <server>")) {
         // Don't log annoying pings and whatnot
@@ -116,4 +129,36 @@ function parseMessage(message: string): [string | null, string | null] {
         return [`:yellow_circle: | ${contents}`, null];
 
     return [null, null];
+}
+
+async function handleELWatchEvent(eventType: fs.WatchEventType, filename: string | null) {
+    if (eventType != "change" || !filename)
+        return;
+
+    const line = await lastLine(filename);
+    const [discordMessage, factorioMessage] = parseELMessage(line);
+
+    if (discordMessage)
+        await sendDiscord(discordMessage);
+
+    if (factorioMessage)
+        await sendFactorio(factorioMessage);
+}
+
+// Returns the discord and the factorio message
+function parseELMessage(message: string): [string | null, string | null] {
+    const e = JSON.parse(message);
+
+    const formatted = new FactorioEvent(e).resolveEvent().format();
+
+    switch (e.event) {
+    case FactorioEventType.Join:
+        return [`:green_circle: | ${formatted}`, `[color=green]${formatted}[/color]`];
+    case FactorioEventType.Leave:
+        return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
+    case FactorioEventType.Died:
+        return [`:skull: | ${formatted}`, null];
+    default:
+        return [formatted, null];
+    }
 }

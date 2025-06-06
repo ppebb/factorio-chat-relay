@@ -22,6 +22,7 @@
   "include": [
     "checkupdates.ts",
     "config.ts",
+    "events.ts",
     "index.ts",
     "message.ts",
     "rcon.ts",

@@ -1,5 +1,6 @@
 {
-    "logFile": "/opt/factorio/Factorio-server.log",
+    "logFile": "/opt/factorio/factorio-server.log",
+    "elFile": "/opt/factorio/factorio-current.log",
 
     "chatChannel": "Channel ID",
     "cleanMessages": false,

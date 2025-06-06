@@ -15,6 +15,7 @@ export function initConfig(path: string) {
 
 export interface Config {
     logFile: string;
+    elFile: string | null;
 
     chatChannel: string;
     cleanMessages: boolean;
