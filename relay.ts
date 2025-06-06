@@ -1,16 +1,16 @@
 import { Events, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
 import { config } from "./config.js";
 import { FactorioEvent, FactorioEventType } from "./events.js";
-import * as fs from "fs";
+import { FileWrapper } from "./filewrapper.js";
 import { client } from "./index.js";
 import { sendDiscord, sendFactorio } from "./message.js";
 import { plural } from "./utils.js";
 
 export function startRelay() {
-    fs.watch(config.logFile, { encoding: "utf8" }, handleGameLogWatchEvent);
+    new FileWrapper(config.logFile, true, handleGameLogWatchEvent);
 
     if (config.elFile)
-        fs.watch(config.elFile, { encoding: "utf8" }, handleELWatchEvent);
+        new FileWrapper(config.elFile, true, handleELWatchEvent);
 
     client.on(Events.MessageCreate, async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
         const zl = message.content.length == 0;
@@ -66,26 +66,19 @@ export function startRelay() {
     });
 }
 
-async function handleGameLogWatchEvent(eventType: fs.WatchEventType, filename: string | null) {
-    if (eventType != "change")
-        return;
+async function handleGameLogWatchEvent(data: Buffer, filename: string | null) {
+    const lines = data.toString("utf8");
 
-    const line = await lastLine(config.logFile);
-    console.log(`Read event ${line} from ${filename}`);
-    const [discordMessage, factorioMessage] = parseMessage(line);
+    for (const line of lines.trim().split("\n")) {
+        console.log(`Read event ${line} from ${filename}`);
+        const [discordMessage, factorioMessage] = parseMessage(line);
 
-    if (discordMessage)
-        await sendDiscord(discordMessage);
+        if (discordMessage)
+            await sendDiscord(discordMessage);
 
-    if (factorioMessage)
-        await sendFactorio(factorioMessage);
-}
-
-async function lastLine(filename: string) {
-    const data = fs.readFileSync(filename, { encoding: "utf8" });
-
-    const lines = data.trim().split("\n");
-    return lines[lines.length - 1];
+        if (factorioMessage)
+            await sendFactorio(factorioMessage);
+    }
 }
 
 // Returns the discord and the factorio message
@@ -132,19 +125,19 @@ function parseMessage(message: string): [string | null, string | null] {
     return [null, null];
 }
 
-async function handleELWatchEvent(eventType: fs.WatchEventType, filename: string | null) {
-    if (eventType != "change")
-        return;
+async function handleELWatchEvent(data: Buffer, filename: string | null) {
+    const lines = data.toString("utf8");
 
-    const line = await lastLine(config.elFile!);
-    console.log(`Read event ${line} from ${filename}`);
-    const [discordMessage, factorioMessage] = parseELMessage(line);
+    for (const line of lines.trim().split("\n")) {
+        console.log(`Read event ${line} from ${filename}`);
+        const [discordMessage, factorioMessage] = parseELMessage(line);
 
-    if (discordMessage)
-        await sendDiscord(discordMessage);
+        if (discordMessage)
+            await sendDiscord(discordMessage);
 
-    if (factorioMessage)
-        await sendFactorio(factorioMessage);
+        if (factorioMessage)
+            await sendFactorio(factorioMessage);
+    }
 }
 
 // Returns the discord and the factorio message

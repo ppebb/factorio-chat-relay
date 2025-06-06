@@ -5,7 +5,6 @@ import * as path from "path";
 import { startRelay } from "./relay.js";
 import { checkFactorio, checkMods } from "./checkupdates.js";
 import { rconConnect } from "./rcon.js";
-import { clearLogFile } from "./utils.js";
 
 export const client = new Client({ intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent] });
 let refresh = false;
@@ -47,8 +46,6 @@ client.once(Events.ClientReady, async function(readyClient) {
     }
     else
         console.log(`Using chat channel ${(channel as TextChannel).name}`);
-
-    clearLogFile();
 
     rconConnect();
 

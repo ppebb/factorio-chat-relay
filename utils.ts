@@ -1,11 +1,4 @@
-import { config } from "./config.js";
-import * as fs from "fs";
 import { RconSend } from "./rcon.js";
-
-export function clearLogFile() {
-    fs.writeFileSync(config.logFile, "");
-    console.log("Cleared previous chat log.");
-}
 
 export function plural(count: number, text: string) {
     return count == 1 ? text : text + "s";

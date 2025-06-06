@@ -23,6 +23,7 @@
     "checkupdates.ts",
     "config.ts",
     "events.ts",
+    "filewrapper.ts",
     "index.ts",
     "message.ts",
     "rcon.ts",
