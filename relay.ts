@@ -149,7 +149,12 @@ async function handleELWatchEvent(eventType: fs.WatchEventType, _: string | null
 function parseELMessage(message: string): [string | null, string | null] {
     const e = JSON.parse(message);
 
-    const formatted = new FactorioEvent(e).resolveEvent().format();
+    const fevent = new FactorioEvent(e).resolveEvent();
+
+    if (!fevent)
+        return [null, null];
+
+    const formatted = fevent.format();
 
     switch (e.event) {
     case FactorioEventType.Join:

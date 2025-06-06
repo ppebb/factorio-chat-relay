@@ -48,7 +48,7 @@ export class FactorioEvent {
         return `Event ${this.event}. Name ${this.name}`;
     }
 
-    resolveEvent(): FactorioEvent {
+    resolveEvent(): FactorioEvent | null {
         switch (this.event) {
         case FactorioEventType.AchievementGained:
             return new AchievementGainedEvent(this);
@@ -67,7 +67,8 @@ export class FactorioEvent {
         case FactorioEventType.ResearchCancelled:
             return new ResearchCancelledEvent(this);
         default:
-            return this;
+            // Unimplemented events should not be logged.
+            return null;
         }
     }
 }
