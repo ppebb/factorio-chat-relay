@@ -1,10 +1,12 @@
-import { Events, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
+import { Events, GuildChannel, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
 import { config } from "./config.js";
 import { EvolutionEvent, FactorioEvent, FactorioEventType } from "./events.js";
 import { FileWrapper } from "./filewrapper.js";
 import { client } from "./index.js";
 import { sendDiscord, sendFactorio } from "./message.js";
 import { plural } from "./utils.js";
+
+const pingRegex = /<@([0-9]+)>/;
 
 export function startRelay() {
     new FileWrapper(config.logFile, true, handleGameLogWatchEvent);
@@ -46,7 +48,21 @@ export function startRelay() {
             } else
                 replyName = reply.member?.nickname ?? reply.author.username;
 
-            replySegment = ` (in reply to ${replyName})`;
+            replySegment = ` [color=#57aef2](in reply to ${replyName})[/color]`;
+        }
+
+        const matches = pingRegex.exec(message.content);
+
+        if (matches) {
+            for (const match of matches) {
+                const member = message.guild?.members.cache.get(match);
+
+                if (!member)
+                    continue;
+
+                const memberName = member.nickname ?? member.displayName;
+                message.content = message.content.replaceAll(`<@${match}>`, `[color=#cc7f21]@${memberName}[/color]`);
+            }
         }
 
         // Only attachments
@@ -71,7 +87,7 @@ async function handleGameLogWatchEvent(data: Buffer, filename: string | null) {
 
     for (const line of lines.trim().split("\n")) {
         console.log(`Read event ${line} from ${filename}`);
-        const [discordMessage, factorioMessage] = parseMessage(line);
+        const [discordMessage, factorioMessage] = await parseMessage(line);
 
         if (discordMessage)
             await sendDiscord(discordMessage);
@@ -82,7 +98,7 @@ async function handleGameLogWatchEvent(data: Buffer, filename: string | null) {
 }
 
 // Returns the discord and the factorio message
-function parseMessage(message: string): [string | null, string | null] {
+async function parseMessage(message: string): Promise<[string | null, string | null]> {
     const braceIdx = message.indexOf("]");
     const semiIdx = message.indexOf(": ");
     const player = message.slice(braceIdx + 2, semiIdx);
@@ -115,6 +131,33 @@ function parseMessage(message: string): [string | null, string | null] {
         // Don't log annoying pings and whatnot
         if (message.includes("[gps=") || message.includes("[train-stop=") || message.includes("[train="))
             return [null, null];
+
+        const contentsCopy = new String(contents).toString();
+        let atIdx = contentsCopy.indexOf("@");
+
+        while (atIdx != -1) {
+            let nextSpace = contentsCopy.indexOf(" ", atIdx);
+
+            // Just go to the end of the string then...
+            if (nextSpace == -1)
+                nextSpace = contentsCopy.length;
+
+            const uname = contentsCopy.slice(atIdx + 1, nextSpace);
+            const unameLower = uname.toLowerCase();
+            const members = (client.channels.cache.get(config.chatChannel) as GuildChannel).guild.members;
+
+            for (const [snowflake, member] of await members.fetch()) {
+                if (member.nickname?.toLowerCase() == unameLower
+                    || member.displayName.toLowerCase() == unameLower
+                    || member.user.globalName?.toLowerCase() == unameLower
+                    || member.user.username.toLowerCase() == unameLower) {
+                    contents = contents.replaceAll(`@${uname}`, `<@${snowflake}>`);
+                    break;
+                }
+            }
+
+            atIdx = contentsCopy.indexOf("@", nextSpace);
+        }
 
         return [`${player}: ${contents}`, null];
     }

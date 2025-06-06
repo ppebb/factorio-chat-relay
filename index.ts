@@ -6,7 +6,7 @@ import { startRelay } from "./relay.js";
 import { checkFactorio, checkMods } from "./checkupdates.js";
 import { rconConnect } from "./rcon.js";
 
-export const client = new Client({ intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent] });
+export const client = new Client({ intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent] });
 let refresh = false;
 
 for (let i = 2; i < process.argv.length; i++) {
