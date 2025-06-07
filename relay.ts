@@ -1,4 +1,4 @@
-import { Events, GuildChannel, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
+import { Events, GuildChannel, GuildMember, Message, MessageType, OmitPartialGroupDMChannel } from "discord.js";
 import { config } from "./config.js";
 import { EvolutionEvent, FactorioEvent, FactorioEventType } from "./events.js";
 import { FileWrapper } from "./filewrapper.js";
@@ -139,6 +139,8 @@ async function parseMessage(message: string): Promise<[string | null, string | n
         if (message.includes("[gps=") || message.includes("[train-stop=") || message.includes("[train="))
             return [null, null];
 
+        const usersPinged: GuildMember[] = [];
+
         const contentsCopy = new String(contents).toString();
         let atIdx = contentsCopy.indexOf("@");
 
@@ -159,12 +161,17 @@ async function parseMessage(message: string): Promise<[string | null, string | n
                     || member.user.globalName?.toLowerCase() == unameLower
                     || member.user.username.toLowerCase() == unameLower) {
                     contents = contents.replaceAll(`@${uname}`, `<@${snowflake}>`);
+                    usersPinged.push(member);
                     break;
                 }
             }
 
             atIdx = contentsCopy.indexOf("@", nextSpace);
         }
+
+        // Inform the factorio user the pings actually went through
+        if (usersPinged.length != 0)
+            sendFactorio(`Pinged [color=#cc7f21]${usersPinged.map(m => "@" + (m.nickname ?? m.user.username)).join(", ")}[/color]`);
 
         return [`${player}: ${contents}`, null];
     }
