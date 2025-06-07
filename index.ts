@@ -1,9 +1,10 @@
 import { CacheType, ChatInputCommandInteraction, Client, Events, GuildMember, IntentsBitField, MessageFlags, REST, RESTPostAPIChatInputApplicationCommandsJSONBody, RESTPutAPIApplicationCommandsResult, Routes, SlashCommandOptionsOnlyBuilder, TextChannel } from "discord.js";
 import { config, initConfig } from "./config.js";
+import { startUpdateChecks } from "./checkupdates.js";
 import * as fs from "fs";
+import { log, LogLevel } from "./logger.js";
 import * as path from "path";
 import { startRelay } from "./relay.js";
-import { checkFactorio, checkMods } from "./checkupdates.js";
 import { rconConnect } from "./rcon.js";
 
 export const client = new Client({ intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMembers, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent] });
@@ -23,6 +24,7 @@ for (let i = 2; i < process.argv.length; i++) {
             if (configPath.charAt(0) != "/")
                 configPath = path.join(process.cwd(), configPath);
 
+            // Will always be logged because we don't know the log-level at this time.
             console.log("Config retrieved from " + configPath);
             i++;
 
@@ -31,42 +33,31 @@ for (let i = 2; i < process.argv.length; i++) {
 
         break;
     default:
+        // Just use console.error because we don't know the log-level at this time.
         console.error("Unknown argument: " + arg);
     }
 }
 
 client.once(Events.ClientReady, async function(readyClient) {
-    console.log(`Logged in as ${readyClient.user.tag}`);
+    log(LogLevel.Info, `Logged in as ${readyClient.user.tag}`);
 
-    const channel = await client.channels.fetch(config.chatChannel);
+    const channel = await client.channels.fetch(config.bot.chatChannel);
 
     if (!channel) {
-        console.error("Invalid chatChannel set!");
+        log(LogLevel.Error, "Invalid chatChannel set!");
         process.exit(1);
     }
     else
-        console.log(`Using chat channel ${(channel as TextChannel).name}`);
+        log(LogLevel.Info, `Using chat channel ${(channel as TextChannel).name}`);
 
     rconConnect();
 
     startRelay();
 
-    if (config.autoCheckUpdates) {
-        checkFactorio();
-        if (config.checkTime > 0) {
-            setInterval(checkFactorio, config.checkTime);
-        }
-    }
-
-    if (config.autoCheckModUpdates) {
-        checkMods();
-        if (config.checkTime > 0) {
-            setInterval(checkMods, config.checkTime);
-        }
-    }
+    startUpdateChecks();
 });
 
-client.login(config.token);
+client.login(config.bot.token);
 
 function isAllowedInteraction(interaction: ChatInputCommandInteraction<CacheType>, adminOnly: boolean) {
     if (!adminOnly)
@@ -104,11 +95,11 @@ async function resolveCommands(root: string, files: string[], callback: (_: Dict
 
         if ("data" in spec && "exec" in spec) {
             const name = path.basename(file, ".js");
-            console.log(`Registered command ${name} from file ${file}`);
+            log(LogLevel.Info, `Registered command ${name} from file ${file}`);
             ret[name] = spec;
         }
         else
-            console.error(`The command at ${file} is missing a required data or exec property`);
+            log(LogLevel.Error, `The command at ${file} is missing a required data or exec property`);
     }
 
     callback(ret);
@@ -138,7 +129,7 @@ async function handleCommand(interaction: ChatInputCommandInteraction<CacheType>
         return;
     }
     catch (error) {
-        console.error(error);
+        log(LogLevel.Error, error);
         if (interaction.replied || interaction.deferred)
             await interaction.followUp({
                 content: "There was an error while executing this command!",
@@ -158,16 +149,16 @@ async function refreshCommands(commands: Dictionary<Command>) {
     for (const cname in commands)
         commandsJson.push(commands[cname].data.toJSON());
 
-    console.log("Refreshing global slash commands");
+    log(LogLevel.Info, "Refreshing global slash commands");
 
-    const rest = new REST().setToken(config.token);
+    const rest = new REST().setToken(config.bot.token);
 
     const data = await rest.put(
-        Routes.applicationCommands(config.applicationID),
+        Routes.applicationCommands(config.bot.applicationID),
         { body: commandsJson }
     ) as RESTPutAPIApplicationCommandsResult;
 
-    console.log(`Successfully reloaded ${data.length} global application (/) commands`);
+    log(LogLevel.Info, `Successfully reloaded ${data.length} global application (/) commands`);
 }
 
 const commandsRoot = path.join(import.meta.dirname ?? __dirname, "commands");

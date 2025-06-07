@@ -25,6 +25,7 @@
     "events.ts",
     "filewrapper.ts",
     "index.ts",
+    "logger.ts",
     "message.ts",
     "rcon.ts",
     "relay.ts",

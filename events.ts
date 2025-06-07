@@ -5,6 +5,8 @@
 // I just throw everything a big switch case and format based on the
 // FactorioEventType.
 
+import { log, LogLevel } from "./logger.js";
+
 export enum FactorioEventType {
     AchievementGained = "ACHIEVEMENT_GAINED",
     Died = "DIED",
@@ -68,6 +70,7 @@ export class FactorioEvent {
             return new ResearchCancelledEvent(this);
         default:
             // Unimplemented events should not be logged.
+            log(LogLevel.Debug, `Skipping Unimplemented event ${this.event}`);
             return null;
         }
     }

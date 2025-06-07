@@ -5,17 +5,21 @@ import { config } from "../config.js";
 export default {
     adminOnly: false,
 
+    shouldEnable() {
+        return !!config.game.factorioModsPath;
+    },
+
     data: new SlashCommandBuilder()
         .setName("mods")
         .setDescription("Lists the mods on the server"),
 
     async exec(interaction: ChatInputCommandInteraction<CacheType>) {
-        if (!fs.existsSync(config.factorioModsPath)) {
+        if (!fs.existsSync(config.game.factorioModsPath!)) {
             await interaction.reply({ content: "There are no mods enabled." });
             return;
         }
 
-        let files = fs.readdirSync(config.factorioModsPath, { encoding: "utf8" });
+        let files = fs.readdirSync(config.game.factorioModsPath!, { encoding: "utf8" });
 
         files = files.filter(file => file.endsWith(".zip"));
 

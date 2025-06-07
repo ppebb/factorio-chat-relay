@@ -1,5 +1,6 @@
 import { config } from "./config.js";
 import { client } from "./index.js";
+import { log, LogLevel } from "./logger.js";
 import { sendDiscord, sendFactorio } from "./message.js";
 import { Rcon } from "rcon-client";
 import { getOnlinePlayers, plural } from "./utils.js";
@@ -9,17 +10,17 @@ let tries = 0;
 
 export function rconConnect() {
     rcon = new Rcon({
-        host: config.RconIP,
-        port: config.RconPort,
-        password: config.RconPassword,
-        timeout: config.RconTimeout > 0 ? config.RconTimeout : 200
+        host: config.rcon.ip,
+        port: config.rcon.port,
+        password: config.rcon.password,
+        timeout: config.rcon.timeout && config.rcon.timeout > 0 ? config.rcon.timeout : 200
     });
 
     rcon.connect().catch(error => {
-        console.error(error);
+        log(LogLevel.Error, error);
 
         if (tries < 10) {
-            console.log(`Attempting to reconnect... (${tries}/10)`);
+            log(LogLevel.Info, `Attempting to reconnect... (${tries}/10)`);
             setTimeout(function() {
                 rconConnect();
                 tries++;
@@ -28,11 +29,11 @@ export function rconConnect() {
     });
 
     rcon.on("connect", () => {
-        console.log("Connected to the Factorio server!");
+        log(LogLevel.Info, "Connected to the Factorio server!");
     });
 
     rcon.on("authenticated", async () => {
-        console.log("Authenticated!");
+        log(LogLevel.Info, "Authenticated!");
 
         if (!config.startupMessage.enabled)
             return;
@@ -58,12 +59,12 @@ export function rconConnect() {
     });
 
     rcon.on("error", async (err) => {
-        console.error(`Error: ${err}`);
+        log(LogLevel.Error, `Error: ${err}`);
         await rcon.end();
     });
 
     rcon.on("end", async () => {
-        console.log("Socket connection ended!");
+        log(LogLevel.Info, "Socket connection ended!");
     });
 }
 
@@ -71,7 +72,7 @@ export async function RconSend(message: string) {
     if (!rcon.authenticated)
         throw "Rcon socket has not authenticated";
 
-    console.log(`Writing message to rcon: '${message}'`);
+    log(LogLevel.Debug, `Writing message to rcon: '${message}'`);
 
     return rcon.send(message);
 }

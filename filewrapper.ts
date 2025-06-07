@@ -36,7 +36,7 @@ export class FileWrapper {
             if (len == 0)
                 break;
 
-            //console.log(`Read ${len} bytes from ${filename}: ${this.buffer.toString("utf8", 0, len)}`);
+            // console.log(`Read ${len} bytes from ${filename}: ${this.buffer.toString("utf8", 0, len)}`);
 
             const temp = Buffer.alloc(len);
             this.buffer.copy(temp);

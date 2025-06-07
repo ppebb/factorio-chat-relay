@@ -10,7 +10,7 @@ export default {
         .setDescription("Prints the current server version"),
 
     async exec(interaction: ChatInputCommandInteraction<CacheType>) {
-        const proc = child_process.spawn(config.factorioPath, ["--version"], {
+        const proc = child_process.spawn(config.game.factorioPath, ["--version"], {
             cwd: process.cwd(),
             stdio: "pipe"
         });

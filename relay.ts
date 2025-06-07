@@ -3,6 +3,7 @@ import { config } from "./config.js";
 import { EvolutionEvent, FactorioEvent, FactorioEventType } from "./events.js";
 import { FileWrapper } from "./filewrapper.js";
 import { client, Dictionary } from "./index.js";
+import { log, LogLevel } from "./logger.js";
 import { sendDiscord, sendFactorio } from "./message.js";
 import { plural } from "./utils.js";
 
@@ -17,8 +18,8 @@ export function getEvolutionData() {
 export function startRelay() {
     new FileWrapper(config.logFile, true, handleGameLogWatchEvent);
 
-    if (config.elFile)
-        new FileWrapper(config.elFile, true, handleELWatchEvent);
+    if (config.eventsLogger.enable)
+        new FileWrapper(config.eventsLogger.elFile, true, handleELWatchEvent);
 
     client.on(Events.MessageCreate, async (message: OmitPartialGroupDMChannel<Message<boolean>>) => {
         const zl = message.content.length == 0;
@@ -30,7 +31,7 @@ export function startRelay() {
         if (message.author.bot)
             return;
 
-        if (message.channelId != config.chatChannel)
+        if (message.channelId != config.bot.chatChannel)
             return;
 
         const name = message.member?.nickname ?? message.author.username;
@@ -92,7 +93,7 @@ async function handleGameLogWatchEvent(data: Buffer, filename: string | null) {
     const lines = data.toString("utf8");
 
     for (const line of lines.trim().split("\n")) {
-        console.log(`Read event ${line} from ${filename}`);
+        log(LogLevel.Debug, `Read event ${line} from ${filename}`);
         const [discordMessage, factorioMessage] = await parseMessage(line);
 
         if (discordMessage)
@@ -120,14 +121,14 @@ async function parseMessage(message: string): Promise<[string | null, string | n
 
     // If events-logger is enabled, get the more detailed leave/join from there
     if (message.includes("[LEAVE]")) {
-        if (config.elFile)
+        if (config.eventsLogger.enable)
             return [null, null];
 
         return [`:red_circle: | ${contents}`, `[color=red]${contents}[/color]`];
     }
 
     if (message.includes("[JOIN]")) {
-        if (config.elFile)
+        if (config.eventsLogger.enable)
             return [null, null];
 
         return [`:green_circle: | ${contents}`, `[color=green]${contents}[/color]`];
@@ -150,7 +151,7 @@ async function parseMessage(message: string): Promise<[string | null, string | n
 
             const uname = contentsCopy.slice(atIdx + 1, nextSpace);
             const unameLower = uname.toLowerCase();
-            const members = (client.channels.cache.get(config.chatChannel) as GuildChannel).guild.members;
+            const members = (client.channels.cache.get(config.bot.chatChannel) as GuildChannel).guild.members;
 
             for (const [snowflake, member] of await members.fetch()) {
                 if (member.nickname?.toLowerCase() == unameLower
@@ -178,7 +179,7 @@ async function handleELWatchEvent(data: Buffer, filename: string | null) {
     const lines = data.toString("utf8");
 
     for (const line of lines.trim().split("\n")) {
-        console.log(`Read event ${line} from ${filename}`);
+        log(LogLevel.Debug, `Read event ${line} from ${filename}`);
         const [discordMessage, factorioMessage] = parseELMessage(line);
 
         if (discordMessage)
@@ -200,29 +201,34 @@ function parseELMessage(message: string): [string | null, string | null] {
 
     const formatted = fevent.format();
 
-    switch (e.event) {
-        case FactorioEventType.AchievementGained:
-            return [`:trophy: | ${formatted}`, null];
-        case FactorioEventType.Join:
-            return [`:green_circle: | ${formatted}`, `[color=green]${formatted}[/color]`];
-        case FactorioEventType.Leave:
-            return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
-        case FactorioEventType.Died:
-            return [`:skull: | ${formatted}`, null];
-        case FactorioEventType.Evolution: {
-            const stats = (e as EvolutionEvent).stats;
-            // Don't report evolution on platforms or in personal sandboxes
-            if (stats.surface.includes("platform") || stats.surface.includes("bpsb-lab"))
-                return [null, null];
+    if (!(config.eventsLogger.events as Dictionary<boolean>)[fevent.event]) {
+        log(LogLevel.Debug, `Skipping disabled event ${fevent.event}`);
+        return [null, null];
+    }
 
-            evolutionData[stats.surface] = stats.factor;
+    switch (e.event) {
+    case FactorioEventType.AchievementGained:
+        return [`:trophy: | ${formatted}`, null];
+    case FactorioEventType.Join:
+        return [`:green_circle: | ${formatted}`, `[color=green]${formatted}[/color]`];
+    case FactorioEventType.Leave:
+        return [`:red_circle: | ${formatted}`, `[color=red]${formatted}[/color]`];
+    case FactorioEventType.Died:
+        return [`:skull: | ${formatted}`, null];
+    case FactorioEventType.Evolution: {
+        const stats = (e as EvolutionEvent).stats;
+        // Don't report evolution on platforms or in personal sandboxes
+        if (stats.surface.includes("platform") || stats.surface.includes("bpsb-lab"))
             return [null, null];
-        }
-        case FactorioEventType.ResearchStarted:
-        case FactorioEventType.ResearchFinished:
-        case FactorioEventType.ResearchCancelled:
-            return [`:alembic: | ${formatted}`, null];
-        default:
-            return [formatted, null];
+
+        evolutionData[stats.surface] = stats.factor;
+        return [null, null];
+    }
+    case FactorioEventType.ResearchStarted:
+    case FactorioEventType.ResearchFinished:
+    case FactorioEventType.ResearchCancelled:
+        return [`:alembic: | ${formatted}`, null];
+    default:
+        return [formatted, null];
     }
 }

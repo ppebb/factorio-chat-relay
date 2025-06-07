@@ -1,4 +1,5 @@
 import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { config } from "../config.js";
 import { getEvolutionData } from "../relay.js";
 
 export default {
@@ -7,6 +8,10 @@ export default {
     data: new SlashCommandBuilder()
         .setName("evolution")
         .setDescription("List evolution factors for each surface"),
+
+    shouldEnable() {
+        return config.eventsLogger.events.EVOLUTION;
+    },
 
     async exec(interaction: ChatInputCommandInteraction<CacheType>) {
         let content = "";
