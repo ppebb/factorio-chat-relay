@@ -103,15 +103,15 @@ export class DiedEvent extends FactorioEvent {
 
     override format(): string {
         if (this.cause == "no-cause")
-            return `Player ${this.name} died to ${this.reason}`;
+            return `Player ${this.name} died to ${toPascalCase(this.reason)}`;
 
         if (this.reason == "PVP")
-            return `Player ${this.name} died in combat with ${this.cause}`;
+            return `Player ${this.name} died in combat with ${toPascalCase(this.cause ?? "unknown")}`;
 
         if (!this.cause)
-            return `Player ${this.name} died to ${this.reason}`;
+            return `Player ${this.name} died to ${toPascalCase(this.reason)}`;
 
-        return `Player ${this.name} died to ${this.cause}`;
+        return `Player ${this.name} died to ${toPascalCase(this.cause)}`;
     }
 }
 
@@ -158,7 +158,7 @@ export class LeaveEvent extends FactorioEvent {
     }
 
     override format(): string {
-        return `${this.name} left the game: ${this.reason}`;
+        return `Player ${this.name} left the game: ${toPascalCase(this.reason)}`;
     }
 }
 
