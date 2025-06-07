@@ -87,7 +87,7 @@ export class AchievementGainedEvent extends FactorioEvent {
     }
 
     override format(): string {
-        return `Achievement ${this.achievement_name} accomplished by ${this.player}!`;
+        return `Achievement ${toPascalCase(this.achievement_name)} accomplished by ${this.player}!`;
     }
 }
 
@@ -162,8 +162,9 @@ export class LeaveEvent extends FactorioEvent {
     }
 }
 
-export class ResearchStartedEvent extends FactorioEvent {
+abstract class ResearchEvent extends FactorioEvent {
     level: string = "";
+    abstract verb: string;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(jsonObject: any) {
@@ -172,43 +173,35 @@ export class ResearchStartedEvent extends FactorioEvent {
     }
 
     override format(): string {
-        if (this.level == "no-level")
-            return `Research ${this.name} started!`;
+        const name = toPascalCase(this.name);
 
-        return `Research ${this.name} Level ${this.level} started!`;
+        if (this.level == "no-level")
+            return `Research ${name} ${this.verb}!`;
+
+        return `Research ${name} Level ${this.level} ${this.verb}!`;
     }
 }
 
-export class ResearchFinishedEvent extends FactorioEvent {
-    level: string = "";
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    constructor(jsonObject: any) {
-        super(jsonObject);
-        Object.assign(this, jsonObject);
-    }
-
-    override format(): string {
-        if (this.level == "no-level")
-            return `Research ${this.name} finished!`;
-
-        return `Research ${this.name} Level ${this.level} finished!`;
-    }
+export class ResearchStartedEvent extends ResearchEvent {
+    override verb = "started";
 }
 
-export class ResearchCancelledEvent extends FactorioEvent {
-    level: string = "";
+export class ResearchFinishedEvent extends ResearchEvent {
+    override verb = "finished";
+}
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    constructor(jsonObject: any) {
-        super(jsonObject);
-        Object.assign(this, jsonObject);
+export class ResearchCancelledEvent extends ResearchEvent {
+    override verb = "cancelled";
+}
+
+function toPascalCase(str: string) {
+    const splits = str.split("-");
+
+    for (let i = 0; i < splits.length; i++) {
+        const split = splits[i];
+
+        splits[i] = split.slice(0, 1).toUpperCase() + split.slice(1);
     }
 
-    override format(): string {
-        if (this.level == "no-level")
-            return `Research ${this.name} cancelled!`;
-
-        return `Research ${this.name} Level ${this.level} cancelled!`;
-    }
+    return splits.join(" ");
 }
