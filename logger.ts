@@ -14,7 +14,7 @@ export function log(level: LogLevel, fmt: string | unknown, ...args: unknown[]) 
         return;
 
     if (level == LogLevel.Error)
-        console.error(fmt, ...args);
+        console.error(`[${level.toUpperCase()}] ` + fmt, ...args);
     else
-        console.log(fmt, ...args);
+        console.log(`[${level.toUpperCase()}] ` + fmt, ...args);
 }
