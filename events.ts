@@ -188,6 +188,21 @@ export class ResearchStartedEvent extends ResearchEvent {
 
 export class ResearchFinishedEvent extends ResearchEvent {
     override verb = "finished";
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(jsonObject: any) {
+        super(jsonObject);
+        Object.assign(this, jsonObject);
+
+        // It appears the finish event number is 1 high...
+        const levelInt = Number.parseInt(this.level);
+
+        if (!levelInt || isNaN(levelInt))
+            return;
+
+        if (Number.parseInt(this.level) > 0)
+            this.level = (levelInt - 1).toString();
+    }
 }
 
 export class ResearchCancelledEvent extends ResearchEvent {
