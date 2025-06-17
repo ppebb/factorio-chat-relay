@@ -23,7 +23,7 @@ See `config.example.json`, most options should be self explanatory, but they are
 | game.factorioPath          | The path to your factorio binary                                                                                                   |
 | game.checkUpdates          | Should Factorio updates be checked automatically?                                                                                  |
 | game.factorioSettingsPath  | Path to server-settings.json. Required only if game.checkUpdates is set.                                                           |
-| game.checkModUpdates       | Should mod updates be checked automatically?                                                                                       |
+| game.checkModUpdates       | Should mod updates be checked automatically?**                                                                                     |
 | game.factorioModsPath      | Path to your mods folder. Required to use the `/mods` command and if game.checkModUpdates is set.                                  |
 | game.userToNotify          | User ID to ping when any mods or the factorio binary is out of date. Required if game.checkUpdates or game.checkModUpdates is set. |
 | game.checkTime             | How frequently to check for updates (in milliseconds). Required if game.checkUpdates or game.checkModUpdates is set.               |
@@ -36,8 +36,7 @@ See `config.example.json`, most options should be self explanatory, but they are
 | bot.applicationID          | Your Discord application ID (from the developer portal)                                                                            |
 
 *Requires the [events-logger](https://github.com/Ralnoc/events-logger) mod with the mod's JSON logs option enabled.  
-**Requires [factorio-updater](https://github.com/narc0tiq/factorio-updater)'s `update_factorio.py` to be copied to the root of the repository.  
-***Requires [factorio-mod-updater](https://github.com/ppebb/factorio-mod-updater)'s `mod_updater.py` to be copied to the root of the repository.  
+**Requires [factorio-mod-updater](https://github.com/ppebb/factorio-mod-updater)'s `mod_updater.py` to be copied to the root of the repository.  
 
 ## Usage
 

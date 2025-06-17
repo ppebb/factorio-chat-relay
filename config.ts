@@ -1,4 +1,4 @@
-import { FACTORIOUPDATER, MODUPDATER } from "./checkupdates.js";
+import { MODUPDATER } from "./checkupdates.js";
 import { existsSync, readFileSync } from "fs";
 import { LogLevel } from "./logger.js";
 import { exit } from "process";
@@ -44,9 +44,6 @@ export function initConfig(path: string) {
         e("game.factorioPath was not specified in your config!");
 
     if (config.game.checkUpdates) {
-        if (!existsSync(FACTORIOUPDATER))
-            e(`game.checkUpdates was set, but ${FACTORIOUPDATER} could not be found!`);
-
         if (!config.game.factorioSettingsPath)
             e("game.checkUpdates was set, but game.factorioSettingsPath was not specified in your config!");
 

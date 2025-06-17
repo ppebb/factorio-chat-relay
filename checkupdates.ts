@@ -3,65 +3,54 @@ import { config } from "./config.js";
 import { log, LogLevel } from "./logger.js";
 import { sendDiscord } from "./message.js";
 import { PythonShell, PythonShellErrorWithLogs } from "python-shell";
+import { gameVersion } from "./utils.js";
 
-export const FACTORIOUPDATER = "update_factorio.py";
 export const MODUPDATER = "mod_updater.py";
 
 export function startUpdateChecks() {
     if (config.game.checkUpdates) {
         checkFactorio();
-        if (config.game.checkTime! > 0) {
+        if (config.game.checkTime! > 0)
             setInterval(checkFactorio, config.game.checkTime!);
-        }
     }
 
     if (config.game.checkModUpdates) {
         checkMods();
-        if (config.game.checkTime! > 0) {
+        if (config.game.checkTime! > 0)
             setInterval(checkMods, config.game.checkTime!);
-        }
     }
 }
 
+// Adapted from https://github.com/narc0tiq/factorio-updater
 export async function checkFactorio() {
-    try {
-        fs.accessSync(FACTORIOUPDATER);
-    }
-    catch {
-        log(LogLevel.Error, "Auto-retrieval of Factorio updates has been set to true, but update_factorio.py was not found.");
+    const res = await fetch("https://updater.factorio.com/get-available-versions");
+
+    if (!res.ok) {
+        log(LogLevel.Error, "Error while fetching Factorio update data: %d, %s", res.status, res.statusText);
         return;
     }
 
-    let res;
-    try {
-        res = await PythonShell.run(FACTORIOUPDATER, {
-            args: [
-                "-d",
-                "-a",
-                config.game.factorioPath
-            ]
-        });
-    }
-    catch (err) {
-        res = (err as PythonShellErrorWithLogs).logs;
-    }
-
-    if (!Array.isArray(res) || res == null || res.length == 0) {
-        log(LogLevel.Error, "Error while checking for updates for the Factorio binary. Ensure the provided path in the config file is set correctly. %j", res);
+    const json = await res.json();
+    const clh64 = json["core-linux_headless64"];
+    if (!clh64 || !Array.isArray(clh64)) {
+        log(LogLevel.Error, "Factorio update response is missing or contains an invalid core-linux_headless64!");
         return;
     }
 
-    res = res as string[];
+    const lastEntry = clh64[clh64.length - 1];
 
-    // Horrible evil parsing
-    if (res[1].includes("No updates available")) {
-        log(LogLevel.Info, `No updates found for provided Factorio binary (version ${res[0].slice(res[0].indexOf("version as") + 11, res[0].indexOf("from") - 1)}).`);
+    if (!lastEntry.stable) {
+        log(LogLevel.Error, "Factorio update response's core-linux_headless64 is missing a stable entry!");
+        return;
     }
-    else if (res[1].includes("Dry run:")) {
-        const lastResult = res[res.length - 1];
-        const message = `Newer Factorio packages were found.\nCurrent version: \`${res[0].slice(res[0].indexOf("version as") + 11, res[0].indexOf("from") - 1)}\`\nLatest version: \`${lastResult.slice(lastResult.indexOf("to ") + 3, lastResult.length - 1)}\``;
+
+    const gameVersionData = await gameVersion();
+    if (lastEntry.stable != gameVersionData.version) {
+        const message = `Newer Factorio packages were found.\nCurrent version: \`${gameVersionData.version}\`\nLatest version: \`${lastEntry.stable}\``;
         await sendDiscord(`<@${config.game.userToNotify}> ${message}`);
         log(LogLevel.Info, message);
+    } else {
+        log(LogLevel.Info, `No updates found for provided Factorio binary (version ${gameVersionData.version}).`);
     }
 }
 
