@@ -7,6 +7,7 @@ export class FileWrapper {
     callback: (data: Buffer, filename: string | null) => void;
     offset: number = 0;
     buffer: Buffer;
+    fd: number;
 
     constructor(path: string, wipe: boolean, callback: (data: Buffer, filename: string | null) => void) {
         this.path = path;
@@ -14,6 +15,8 @@ export class FileWrapper {
 
         if (wipe)
             fs.writeFileSync(path, "", { encoding: "utf8" });
+
+        this.fd = fs.openSync(this.path, "r+");
 
         fs.watch(path, { encoding: "utf8" }, (e: fs.WatchEventType, fn: string | null) => this.readNewData(e, fn));
 
@@ -24,13 +27,11 @@ export class FileWrapper {
         if (eventType != "change")
             return;
 
-        const fd = fs.openSync(this.path, "r+");
-
         let len: number;
         const bufs: Buffer[] = [];
 
         do {
-            len = fs.readSync(fd, this.buffer, 0, 1024, this.offset);
+            len = fs.readSync(this.fd, this.buffer, 0, 1024, this.offset);
             this.offset += len;
 
             if (len == 0)
